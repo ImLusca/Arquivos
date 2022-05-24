@@ -11,5 +11,8 @@ char* readUntil(FILE* a, char delimiter);
 void binarioNaTela(char* nomeArquivoBinario);
 registro_t* lerRegistroTipo1(FILE *fptr);
 registro_t* lerRegistroTipo2(FILE *fptr);
+cabecalho_t *lerCabecalhoTipo1(FILE *fptr);
+cabecalho_t *lerCabecalhoTipo2(FILE *fptr);
+
 
 #endif

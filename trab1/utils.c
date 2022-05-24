@@ -47,14 +47,54 @@ void lerArquivoTipo2(FILE* arquivo, registro_t* registro)
 		&registro->prox, &registro->tamCidade, &registro->tamMarca, &registro->tamModelo);
 }
 
+static void lerDescricoes(FILE *fptr, cabecalho_t *cab){
 
-registro_t *lerRegistroTipo1(FILE *fptr){
-	
-	registro_t *reg = malloc(sizeof(registro_t));
+	fread(&cab->descricao,40,1,fptr);
+	fread(&cab->desC1,22,1,fptr);
+	fread(&cab->desC2,19,1,fptr);
+	fread(&cab->desC3,24,1,fptr);
+	fread(&cab->desC4,8,1,fptr);
+	fread(&cab->codC5,1,1,fptr);
+	fread(&cab->desC5,16,1,fptr);
+	fread(&cab->codC6,1,1,fptr);
+	fread(&cab->desC6,18,1,fptr);
+	fread(&cab->codC7,1,1,fptr);
+	fread(&cab->desC7,19,1,fptr);	
 
-	fscanf(fptr, "%c%i%i%i%i", &reg->removido, &reg->prox,&reg->id,&reg->ano, &reg->qtt);
+}
+
+cabecalho_t *lerCabecalhoTipo1(FILE *fptr){
+
+	cabecalho_t *cab = malloc(sizeof(cabecalho_t));
+
+	fscanf(fptr, "%c%i", &cab->status, &cab->topoA);
+	lerDescricoes(fptr, cab);
+	fscanf(fptr, "%i%i", &cab->proxRRN, &cab->nroRegRem);
+
+	return cab;
+
+}
+cabecalho_t *lerCabecalhoTipo2(FILE *fptr){
+
+	cabecalho_t *cab = malloc(sizeof(cabecalho_t));
+
+	fscanf(fptr, "%c%li", &cab->status, &cab->topoB);
+	lerDescricoes(fptr, cab);
+	fscanf(fptr, "%li%i", &cab->proxByteOffset, &cab->nroRegRem);
+
+	return cab;
+
+}
+
+static void leEstaticos(FILE *fptr, registro_t *reg){
+
+	fscanf(fptr, "%i%i%i", &reg->id,&reg->ano, &reg->qtt);
 	fscanf(fptr, "%c%c%i%c", &reg->sigla[0],&reg->sigla[1],&reg->tamCidade, &reg->codC5);
-	
+
+}
+
+static void leVariaveis(FILE *fptr, registro_t *reg){
+
 	reg->cidade = malloc(sizeof(char) * reg->tamCidade);
 	fread(reg->cidade,reg->tamCidade, 1, fptr);
 
@@ -68,20 +108,47 @@ registro_t *lerRegistroTipo1(FILE *fptr){
 	reg->modelo = malloc(sizeof(char) * reg->tamModelo);
 	fread(reg->modelo,reg->tamModelo, 1, fptr);
 
+}
+
+registro_t *lerRegistroTipo1(FILE *fptr){
+	
+	registro_t *reg = malloc(sizeof(registro_t));
+
+	fscanf(fptr, "%c%i",&reg->removido, &reg->prox);
+
+	leStaticos(fptr, reg);
+	
+	leVariaveis(fptr, reg);
+
 	return reg;
 }
 
-void binarioNaTela(char* nomeArquivoBinario) { /* Você não precisa entender o código dessa função. */
+registro_t *lerRegistroTipo2(FILE *fptr){
 
-	/* Use essa função para comparação no run.codes. Lembre-se de ter fechado (fclose) o arquivo anteriormente.
-	*  Ela vai abrir de novo para leitura e depois fechar (você não vai perder pontos por isso se usar ela). */
+	registro_t *reg = malloc(sizeof(registro_t));
+
+	fscanf(fptr, "%c%i%li", &reg->removido, &reg->tamRegistro, &reg->prox);
+
+	leEstaticos(fptr, reg);
+
+	leVariaveis(fptr, reg);
+
+	return reg;
+
+}
+
+
+void binarioNaTela(char* nomeArquivoBinario) { /* Vocï¿½ nï¿½o precisa entender o cï¿½digo dessa funï¿½ï¿½o. */
+
+	/* Use essa funï¿½ï¿½o para comparaï¿½ï¿½o no run.codes. Lembre-se de ter fechado (fclose) o arquivo anteriormente.
+	*  Ela vai abrir de novo para leitura e depois fechar (vocï¿½ nï¿½o vai perder pontos por isso se usar ela). */
 
 	unsigned long i, cs;
 	unsigned char* mb;
 	size_t fl;
 	FILE* fs;
 	if (nomeArquivoBinario == NULL || !(fs = fopen(nomeArquivoBinario, "rb"))) {
-		fprintf(stderr, "ERRO AO ESCREVER O BINARIO NA TELA (função binarioNaTela): não foi possível abrir o arquivo que me passou para leitura. Ele existe e você tá passando o nome certo? Você lembrou de fechar ele com fclose depois de usar?\n");
+		fprintf(stderr, "ERRO AO ESCREVER O BINARIO NA TELA (funï¿½ï¿½o binarioNaTela): nï¿½o foi possï¿½vel abrir o arquivo que me passou para leitura. Ele existe e vocï¿½ tï¿½ passando o nome certo? Vocï¿½ lembrou de fechar ele com fclose depois de usar?\n");
 		return;
 	}
 	fseek(fs, 0, SEEK_END);

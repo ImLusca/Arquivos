@@ -3,25 +3,26 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-typedef struct cabecalho1
+typedef struct cabecalho
 {
 	char status;
-	int topo;
+	int topoA;
+	long int topoB;
 	char descricao[40];
 	char desC1[22];
 	char desC2[19];
 	char desC3[24];
 	char desC4[8];
-	char corC5;
+	char codC5;
 	char desC5[16];
-	char corC6;
+	char codC6;
 	char desC6[18];
-	char corC7;
+	char codC7;
 	char desC7[19];
 	int proxRRN;
+	long int proxByteOffset;	
 	int nroRegRem;
-
-}cabecalho1_t;
+}cabecalho_t;
 
 typedef struct registro
 {
@@ -46,8 +47,7 @@ typedef struct registro
 
 FILE* funcionalidade1();
 void funcionalidade2();
-FILE* funcionalidade3();
-FILE* funcionalidade4();
+void funcionalidade3();
 
 
 

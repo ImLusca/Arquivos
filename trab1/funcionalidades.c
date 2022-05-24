@@ -29,15 +29,21 @@ FILE* funcionalidade1()
 void funcionalidade2(){
     char* tipoArquivo = readUntil(stdin, ' ');
     char* arquivoEntrada = readUntil(stdin, ' ');
+    
+    FILE *binario = fopen(arquivoEntrada, "rb");
 
-    if(!strcmp(tipoArquivo, "tipo1")){
-        registro_t *reg = lerRegistroTipo1(fopen(arquivoEntrada, "rb"));
+    if(!strcmp(tipoArquivo, "tipo1")){        
+
+        cabecalho_t *cab = lerCabecalhoTipo1(binario);
+        registro_t *reg = lerRegistroTipo1(binario);
                 
     }else if(!strcmp(tipoArquivo,"tipo2")){
         
+        cabecalho_t *cab = lerCabecalhoTipo2(binario);
+        registro_t *reg = lerRegistroTipo2(binario);
 
     }else{
-        printf("Tipo de arquivo inválido\n");
+        printf("Tipo de arquivo invï¿½lido\n");
     }
 
 }
