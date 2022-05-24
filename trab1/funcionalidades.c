@@ -11,17 +11,28 @@ FILE* funcionalidade1()
 	char* arquivoSaida = readUntil(stdin, '\n');
 
 	FILE* entrada = fopen(arquivoEntrada, "r");
+    FILE* saida = fopen(arquivoSaida, "wb");
+    if (entrada == NULL || saida == NULL)
+    {
+        printf("Falha no processamento do arquivo.\n");
+        return NULL;
+    }
     registro_t* registro = malloc(sizeof(registro_t));
 
-    if (strcmp(tipoArquivo, "tipo1") == 0)
-        lerArquivoTipo1(entrada, registro);
-    else if (strcmp(tipoArquivo, "tipo2") == 0)
-        lerArquivoTipo2(entrada, registro);
-
-    printf("id: %d\nano: %d\nqtt: %d\nsigla: %c%c", registro->id, registro->ano, registro->qtt, registro->sigla[0], registro->sigla[1]);
+    long counter = 0;
+    char buffer;
+    fseek(entrada, 61, 0);
+    while (fread(&buffer, 1, 1, entrada) != 0) 
+    {
+        ungetc(buffer, entrada);
+        counter++;
+        lerArquivo(entrada, registro);
+        //escreverArquivo(saida, registro, tipoArquivo);
+    }
 
     fclose(entrada);
-    FILE* saida = fopen(arquivoSaida, "wb");
+    fclose(saida);
+    binarioNaTela(arquivoSaida);
 
     return saida;
 }
