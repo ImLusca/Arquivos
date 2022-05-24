@@ -25,26 +25,59 @@ char* readUntil(FILE* a, char delimiter)
 	return word;
 }
 
-void lerArquivoTipo1(FILE* arquivo, registro_t* registro)
+int readNumberUntil(FILE* a, char delimiter)
 {
-	fscanf(arquivo, "%d,%d,%d,%c%c", &registro->id, &registro->ano, &registro->qtt, 
-		&registro->sigla[0], &registro->sigla[1]);
-	registro->cidade = readUntil(arquivo, ',');
-	registro->marca = readUntil(arquivo, ',');
-	registro->modelo = readUntil(arquivo, ',');
-	fscanf(arquivo, "%c,%d,%d,%d,%d", &registro->removido, &registro->prox,
-		&registro->tamCidade, &registro->tamMarca, &registro->tamModelo);
+	char* num = readUntil(a, delimiter);
+	if (num[0] == '\0') return -1;
+	
+	int number = atoi(num);
+	free(num);
+
+	return number;
 }
 
-void lerArquivoTipo2(FILE* arquivo, registro_t* registro)
+void readStaticUntil(FILE* a, int tamanho, char* s, char delimiter)
 {
-	fscanf(arquivo, "%d,%d,%d,%c%c", &registro->id, &registro->ano, &registro->qtt,
-		&registro->sigla[0], &registro->sigla[1]);
+	int d = 0;
+	for (int i = 0; i < tamanho; i++)
+	{
+		s[i] = fgetc(a);
+		if (s[i] == ',')
+		{
+			d++;
+			s[i] = '\0';
+			break;
+		}
+	}
+	char delim;
+	if (d == 0) delim = fgetc(a);
+}
+
+void lerArquivo(FILE* arquivo, registro_t* registro)
+{
+	registro->sigla[0] = '\0';
+	registro->sigla[1] = '\0';
+
+	registro->id = readNumberUntil(arquivo, ',');
+	registro->ano = readNumberUntil(arquivo, ',');
 	registro->cidade = readUntil(arquivo, ',');
+	registro->qtt = readNumberUntil(arquivo, ',');
+	readStaticUntil(arquivo, 2, registro->sigla, ',');
 	registro->marca = readUntil(arquivo, ',');
 	registro->modelo = readUntil(arquivo, ',');
-	fscanf(arquivo, "%c,%d,%d,%d,%d,%d", &registro->removido, &registro->tamRegistro, 
-		&registro->prox, &registro->tamCidade, &registro->tamMarca, &registro->tamModelo);
+
+	printf("id: %d\n", registro->id);
+	printf("ano: %d\n", registro->ano);
+	printf("cidade: %s\n", registro->cidade);
+	printf("qtt: %d\n", registro->qtt);
+	printf("sigla: %c%c\n", registro->sigla[0], registro->sigla[1]);
+	printf("marca: %s\n", registro->marca);
+	printf("modelo: %s\n", registro->modelo);
+}
+
+void escreverArquivo(FILE* arquivo, registro_t* registro, char* tipo)
+{
+
 }
 
 
