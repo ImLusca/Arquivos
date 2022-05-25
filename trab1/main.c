@@ -24,14 +24,16 @@ int main()
 	switch(funcionalidade)
 	{
 	case 1:
-		funcionalidade1();
+		createTable();
 		break;
 	case 2:
 		funcionalidade2();
 		break;
 	case 3:
+		
 		break;
 	case 4:
+		recuperarRegistro();
 		break;	
 	}
 

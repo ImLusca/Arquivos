@@ -1,60 +1,125 @@
-#include "funcionalidades.h"
+﻿#include "funcionalidades.h"
 #include "utils.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-FILE* funcionalidade1()
+FILE* createTable()
 {
-	char* tipoArquivo = readUntil(stdin, ' ');
-	char* arquivoEntrada = readUntil(stdin, ' ');
-	char* arquivoSaida = readUntil(stdin, '\n');
+    char* tipoArquivo = readUntil(stdin, ' ');
+    char* arquivoEntrada = readUntil(stdin, ' ');
+    char* arquivoSaida = readUntil(stdin, '\n');
 
-	FILE* entrada = fopen(arquivoEntrada, "r");
+    FILE* entrada = fopen(arquivoEntrada, "r");
     FILE* saida = fopen(arquivoSaida, "wb");
+
     if (entrada == NULL || saida == NULL)
     {
         printf("Falha no processamento do arquivo.\n");
+        free(tipoArquivo);
+        free(arquivoEntrada);
+        free(arquivoSaida);
         return NULL;
-    }
-    registro_t* registro = malloc(sizeof(registro_t));
+    }    
 
-    long counter = 0;
+    cabecalho_t* cabecalho = malloc(sizeof(cabecalho_t));
+    cabecalho->status = '0';
+    escreverCabecalho(saida, cabecalho, tipoArquivo);
+
     char buffer;
+    int count = 0;
     fseek(entrada, 61, 0);
-    while (fread(&buffer, 1, 1, entrada) != 0) 
+
+    while (fread(&buffer, 1, 1, entrada) != 0)
     {
+        registro_t* registro = malloc(sizeof(registro_t));
         ungetc(buffer, entrada);
-        counter++;
-        lerArquivo(entrada, registro);
-        //escreverArquivo(saida, registro, tipoArquivo);
+        lerRegistrocsv(entrada, registro, tipoArquivo);
+        escreverNoArquivo(saida, registro, cabecalho, tipoArquivo);
+        count++;
+
+        if (strcmp(tipoArquivo, "tipo1") == 0)
+            cabecalho->proxRRN = count;
+        else if (strcmp(tipoArquivo, "tipo2") == 0)
+            cabecalho->proxByteOffset = (count * registro->tamRegistro) + TAM_CABECALHO2;
+
+        liberar(registro);
     }
+
+    cabecalho->status = '1';
+    atualizarCabecalho(saida, cabecalho, tipoArquivo);
 
     fclose(entrada);
     fclose(saida);
+
     binarioNaTela(arquivoSaida);
+
+    free(cabecalho);
+    free(tipoArquivo);
+    free(arquivoEntrada);
+    free(arquivoSaida);
 
     return saida;
 }
 
-void funcionalidade2(){
+void funcionalidade2() {
     char* tipoArquivo = readUntil(stdin, ' ');
     char* arquivoEntrada = readUntil(stdin, ' ');
-    
-    FILE *binario = fopen(arquivoEntrada, "rb");
 
-    if(!strcmp(tipoArquivo, "tipo1")){        
+    FILE* binario = fopen(arquivoEntrada, "rb");
 
-        cabecalho_t *cab = lerCabecalhoTipo1(binario);
-        registro_t *reg = lerRegistroTipo1(binario);
-                
-    }else if(!strcmp(tipoArquivo,"tipo2")){
-        
-        cabecalho_t *cab = lerCabecalhoTipo2(binario);
-        registro_t *reg = lerRegistroTipo2(binario);
+    if (!strcmp(tipoArquivo, "tipo1")) {
 
-    }else{
-        printf("Tipo de arquivo inv�lido\n");
+        cabecalho_t* cab = lerCabecalhoTipo1(binario);
+        registro_t* reg = lerRegistroTipo1(binario);
+
+    }
+    else if (!strcmp(tipoArquivo, "tipo2")) {
+
+        cabecalho_t* cab = lerCabecalhoTipo2(binario);
+        registro_t* reg = lerRegistroTipo2(binario);
+
+    }
+    else {
+        printf("Tipo de arquivo inválido\n");
     }
 
+}
+
+void recuperarRegistro()
+{
+    char* tipoArquivo = readUntil(stdin, ' ');
+    char* arquivoEntrada = readUntil(stdin, ' ');
+    int RRN = readNumberUntil(stdin, '\n');
+
+    if (strcmp(tipoArquivo, "tipo2") == 0)
+    {
+        printf("A recuperação não pode ser realizada.\n");
+        free(tipoArquivo);
+        free(arquivoEntrada);
+    }
+    else if (strcmp(tipoArquivo, "tipo1") == 0)
+    {
+        FILE* entrada = fopen(arquivoEntrada, "rb");
+        if (entrada == NULL)
+        {
+            printf("Falha no processamento do arquivo.\n");
+            free(tipoArquivo);
+            free(arquivoEntrada);
+            return;
+        }
+        cabecalho_t* cabecalho = lerCabecalhoTipo1(entrada);
+        if (RRN < 0 || RRN >= cabecalho->proxRRN) printf("Registro inexistente.\n");
+        else
+        {
+            fseek(entrada, (RRN * TAM_REG) + TAM_CABECALHO1, 0);
+            registro_t* reg = lerRegistroTipo1(entrada);
+            imprimirRegistro(reg, cabecalho);
+            liberar(reg);
+        }
+        fclose(entrada);
+        free(cabecalho);
+        free(tipoArquivo);
+        free(arquivoEntrada);
+    }
 }

@@ -1,5 +1,11 @@
 #ifndef FUNCIONALIDADES_H
 #define FUNCIONALIDADES_H
+#define TAM_CABECALHO1 182
+#define ESTATICOS1 34
+#define ESTATICOS2 42
+#define TAM_CABECALHO2 190
+#define TAM_REG 97
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -8,19 +14,19 @@ typedef struct cabecalho
 	char status;
 	int topoA;
 	long int topoB;
-	char descricao[40];
-	char desC1[22];
-	char desC2[19];
-	char desC3[24];
-	char desC4[8];
+	char descricao[41];
+	char desC1[23];
+	char desC2[20];
+	char desC3[25];
+	char desC4[9];
 	char codC5;
-	char desC5[16];
+	char desC5[17];
 	char codC6;
-	char desC6[18];
+	char desC6[19];
 	char codC7;
-	char desC7[19];
+	char desC7[20];
 	int proxRRN;
-	long int proxByteOffset;	
+	long int proxByteOffset;
 	int nroRegRem;
 }cabecalho_t;
 
@@ -45,10 +51,10 @@ typedef struct registro
 } registro_t;
 
 
-FILE* funcionalidade1();
+FILE* createTable();
 void funcionalidade2();
 void funcionalidade3();
-
+void recuperarRegistro();
 
 
 #endif
