@@ -73,8 +73,27 @@ void funcionalidade2() {
     }
     else if (!strcmp(tipoArquivo, "tipo2")) {
 
-        cabecalho_t* cab = lerCabecalhoTipo2(binario);
-        registro_t* reg = lerRegistroTipo2(binario);
+        cabecalho_t *cab = lerCabecalhoTipo1(binario);
+
+        do{
+            long int posInicio = ftell(binario);
+            
+            registro_t *reg = lerRegistroTipo1(binario);
+
+            printaRegistro(1, reg);
+
+            liberaRegistro(1,reg);
+
+            fseek(binario, posInicio + TAM_REG, SEEK_SET);
+
+        }while(ftell(binario) <= cab->proxRRN * TAM_REG);
+        
+
+                
+    }else if(!strcmp(tipoArquivo,"tipo2")){
+        
+        cabecalho_t *cab = lerCabecalhoTipo2(binario);
+        registro_t *reg = lerRegistroTipo2(binario);
 
     }
     else {

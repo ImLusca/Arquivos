@@ -14,11 +14,13 @@ void inicializarCabecalho(cabecalho_t* cabecalho);
 void escreverCabecalho(FILE* arquivo, cabecalho_t* cabecalho, char* tipo);
 void atualizarCabecalho(FILE* arquivo, cabecalho_t* cabecalho, char* tipo);
 void binarioNaTela(char* nomeArquivoBinario);
-registro_t* lerRegistroTipo1(FILE* fptr);
-registro_t* lerRegistroTipo2(FILE* fptr);
-cabecalho_t* lerCabecalhoTipo1(FILE* fptr);
-cabecalho_t* lerCabecalhoTipo2(FILE* fptr);
 void liberar(registro_t* r);
 void imprimirRegistro(registro_t* r, cabecalho_t* c);
+void printaRegistro(int tipoReg, registro_t *reg);
+void liberaRegistro(int tipoReg, registro_t *reg);
+registro_t* lerRegistroTipo1(FILE *fptr);
+registro_t* lerRegistroTipo2(FILE *fptr);
+cabecalho_t *lerCabecalhoTipo1(FILE *fptr);
+cabecalho_t *lerCabecalhoTipo2(FILE *fptr);
 
 #endif
