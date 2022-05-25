@@ -109,7 +109,17 @@ void recuperarRegistro()
             return;
         }
         cabecalho_t* cabecalho = lerCabecalhoTipo1(entrada);
-        if (RRN < 0 || RRN >= cabecalho->proxRRN) printf("Registro inexistente.\n");
+        if (cabecalho->status == 0)
+        {
+            printf("Falha no processamento do arquivo.\n");
+            fclose(entrada);
+            free(cabecalho);
+            free(tipoArquivo);
+            free(arquivoEntrada);
+            return;
+        }
+        if (RRN < 0 || RRN >= cabecalho->proxRRN) 
+            printf("Registro inexistente.\n");
         else
         {
             fseek(entrada, (RRN * TAM_REG) + TAM_CABECALHO1, 0);
