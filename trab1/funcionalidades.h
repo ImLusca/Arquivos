@@ -2,9 +2,10 @@
 #define FUNCIONALIDADES_H
 #define TAM_CABECALHO1 182
 #define ESTATICOS1 34
-#define ESTATICOS2 42
+#define ESTATICOS2 37
 #define TAM_CABECALHO2 190
 #define TAM_REG 97
+#define CABECALHO_CSV 61
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,7 +35,8 @@ typedef struct registro
 {
 	char removido;
 	int tamRegistro;
-	int prox;
+	int proxA;
+	long int proxB;
 	int id;
 	int ano;
 	int qtt;

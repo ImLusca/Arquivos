@@ -25,11 +25,12 @@ FILE* createTable()
     cabecalho_t* cabecalho = malloc(sizeof(cabecalho_t));
     cabecalho->status = '0';
     escreverCabecalho(saida, cabecalho, tipoArquivo);
+    if (strcmp(tipoArquivo, "tipo2") == 0)
+        cabecalho->proxByteOffset = TAM_CABECALHO2;
 
     char buffer;
     int count = 0;
-    fseek(entrada, 61, 0);
-
+    fseek(entrada, CABECALHO_CSV, 0);
     while (fread(&buffer, 1, 1, entrada) != 0)
     {
         registro_t* registro = malloc(sizeof(registro_t));
@@ -38,14 +39,10 @@ FILE* createTable()
         escreverNoArquivo(saida, registro, cabecalho, tipoArquivo);
         count++;
 
-        if (strcmp(tipoArquivo, "tipo1") == 0)
-            cabecalho->proxRRN = count;
-        else if (strcmp(tipoArquivo, "tipo2") == 0)
-            cabecalho->proxByteOffset = (count * registro->tamRegistro) + TAM_CABECALHO2;
-
         liberar(registro);
     }
-
+    cabecalho->proxRRN = count;
+    cabecalho->proxByteOffset = ftell(saida);
     cabecalho->status = '1';
     atualizarCabecalho(saida, cabecalho, tipoArquivo);
 

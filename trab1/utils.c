@@ -57,6 +57,13 @@ void readStaticUntil(FILE* a, int tamanho, char* s, char delimiter)
 		{
 			d++;
 			s[i] = '\0';
+			if (i == 0)
+			{
+				for (int i = 0; i < tamanho; i++)
+				{
+					s[i] = '$';
+				}
+			}
 			break;
 		}
 	}
@@ -131,6 +138,7 @@ void atualizarCabecalho(FILE* arquivo, cabecalho_t* cabecalho, char* tipo)
 		fseek(arquivo, 178, 0);
 		fwrite(&cabecalho->proxByteOffset, sizeof(long int), 1, arquivo);
 	}
+	fwrite(&cabecalho->nroRegRem, sizeof(int), 1, arquivo);
 }
 
 void lerRegistrocsv(FILE* arquivo, registro_t* registro, char* tipo)
@@ -152,7 +160,8 @@ void lerRegistrocsv(FILE* arquivo, registro_t* registro, char* tipo)
 	registro->modelo = readUntil(arquivo, ',');
 
 	registro->removido = '0';
-	registro->prox = -1;
+	registro->proxA = -1;
+	registro->proxB = -1;
 	if (registro->cidade == NULL)
 	{
 		registro->tamCidade = 0;
@@ -188,15 +197,16 @@ void escreverLixo(FILE* arquivo, int tam, char* lixo)
 void escreverNoArquivo(FILE* arquivo, registro_t* registro, cabecalho_t* cabecalho, char* tipo)
 {
 	fwrite(&registro->removido, 1, 1, arquivo);
-	fwrite(&registro->prox, sizeof(int), 1, arquivo);
+	if (strcmp(tipo, "tipo2") == 0)
+		fwrite(&registro->tamRegistro, sizeof(int), 1, arquivo);
+	if (strcmp(tipo, "tipo1") == 0)
+		fwrite(&registro->proxA, sizeof(int), 1, arquivo);
+	else if (strcmp(tipo, "tipo2") == 0)
+		fwrite(&registro->proxB, sizeof(long int), 1, arquivo);
 	fwrite(&registro->id, sizeof(int), 1, arquivo);
 	fwrite(&registro->ano, sizeof(int), 1, arquivo);
 	fwrite(&registro->qtt, sizeof(int), 1, arquivo);
-	
-	if (registro->sigla[0] != '\0')
-		fwrite(registro->sigla, 1, 2, arquivo);
-	else
-		registro->tamRegistro -= 2;
+	fwrite(registro->sigla, 1, 2, arquivo);
 	
 	if (registro->cidade != NULL)
 	{
@@ -219,7 +229,6 @@ void escreverNoArquivo(FILE* arquivo, registro_t* registro, cabecalho_t* cabecal
 		fwrite(registro->modelo, 1, registro->tamModelo, arquivo);
 	}
 	
-
 	if (strcmp(tipo, "tipo1") == 0) escreverLixo(arquivo, 97 - registro->tamRegistro	, "$");
 }
 
@@ -233,6 +242,11 @@ void liberar(registro_t* r)
 
 void imprimirRegistro(registro_t* r, cabecalho_t* c)
 {
+	if (r->removido == '1')
+	{
+		printf("Registro inexistente.\n");
+		return;
+	}
 	printf("%s", c->desC6);
 	if (r->marca != NULL)printf("%s\n", r->marca);
 	else printf("NAO PREENCHIDO\n");
@@ -320,7 +334,7 @@ registro_t* lerRegistroTipo1(FILE* fptr) {
 
 	registro_t* reg = malloc(sizeof(registro_t));
 
-	fscanf(fptr, "%c%i", &reg->removido, &reg->prox);
+	fscanf(fptr, "%c%i", &reg->removido, &reg->proxA);
 
 	leEstaticos(fptr, reg);
 
@@ -333,7 +347,7 @@ registro_t* lerRegistroTipo2(FILE* fptr) {
 
 	registro_t* reg = malloc(sizeof(registro_t));
 
-	fscanf(fptr, "%c%i%li", &reg->removido, &reg->tamRegistro, &reg->prox);
+	fscanf(fptr, "%c%i%li", &reg->removido, &reg->tamRegistro, &reg->proxB);
 
 	leEstaticos(fptr, reg);
 
