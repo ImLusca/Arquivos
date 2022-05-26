@@ -5,6 +5,14 @@
 
 static int campoEstaPreenchido(char codigo, registro_t *reg);
 
+/**
+ * @brief Lê uma string de tamanho variável a partir do arquivo 'a', 
+ * até que seja lido o caractere delimitador
+ *
+ * @param a : Arquivo fonte
+ * @param delimiter : caractere delimitador
+ * @return char* : string lida
+ */
 char* readUntil(FILE* a, char delimiter)
 {
 	char* word = NULL;
@@ -34,6 +42,14 @@ char* readUntil(FILE* a, char delimiter)
 	return word;
 }
 
+/**
+ * @brief Lê um número inteiro a partir de um arquivo, até que o 
+ * caractere delimitador seja encontrado
+ *
+ * @param a : Arquivo fonte
+ * @param delimiter : caractere delimitador
+ * @return int : inteiro lido
+ */
 int readNumberUntil(FILE* a, char delimiter)
 {
 	char* num = readUntil(a, delimiter);
@@ -49,6 +65,15 @@ int readNumberUntil(FILE* a, char delimiter)
 	return number;
 }
 
+/**
+ * @brief Lê uma string estática a partir de um arquivo, até que o 
+ * caractere delimitador seja encontrado
+ *
+ * @param a : Arquivo fonte
+ * @param tamanho : tamanho da string estática
+ * @param s : ponteiro para a string
+ * @param delimiter : caractere delimitador
+ */
 void readStaticUntil(FILE* a, int tamanho, char* s, char delimiter)
 {
 	int d = 0;
@@ -73,6 +98,11 @@ void readStaticUntil(FILE* a, int tamanho, char* s, char delimiter)
 	if (d == 0) delim = fgetc(a);
 }
 
+/**
+ * @brief Inicializa a struct que contém os valores do cabeçalho
+ *
+ * @param cabecalho : ponteiro para a struct
+ */
 void inicializarCabecalho(cabecalho_t* cabecalho)
 {
 	cabecalho->topoA = -1;
@@ -93,73 +123,95 @@ void inicializarCabecalho(cabecalho_t* cabecalho)
 	cabecalho->nroRegRem = 0;
 }
 
-void escreverCabecalho(FILE* arquivo, cabecalho_t* cabecalho, char* tipo)
+/**
+ * @brief Escreve o cabeçalho em um arquivo binário 
+ *
+ * @param binario : ponteiro para o arquivo
+ * @param cabecalho : struct contendo os dados do cabeçalho
+ * @param tipo : tipo do arquivo
+ */
+void escreverCabecalho(FILE* binario, cabecalho_t* cabecalho, char* tipo)
 {
 	inicializarCabecalho(cabecalho);
 
-	fseek(arquivo, 0, 0);
-	fwrite(&cabecalho->status, 1, 1, arquivo);
+	fseek(binario, 0, 0);
+	fwrite(&cabecalho->status, 1, 1, binario);
+
+	if (strcmp(tipo, "tipo1") == TIPOS_IGUAIS)
+		fwrite(&cabecalho->topoA, sizeof(int), 1, binario);
+	else if (strcmp(tipo, "tipo2") == TIPOS_IGUAIS)
+		fwrite(&cabecalho->topoB, sizeof(long int), 1, binario);
+
+	fwrite(cabecalho->descricao, 1, 40, binario);
+	fwrite(cabecalho->desC1, 1, 22, binario);
+	fwrite(cabecalho->desC2, 1, 19, binario);
+	fwrite(cabecalho->desC3, 1, 24, binario);
+	fwrite(cabecalho->desC4, 1, 8, binario);
+	fwrite(&cabecalho->codC5, 1, 1, binario);
+	fwrite(cabecalho->desC5, 1, 16, binario);
+	fwrite(&cabecalho->codC6, 1, 1, binario);
+	fwrite(cabecalho->desC6, 1, 18, binario);
+	fwrite(&cabecalho->codC7, 1, 1, binario);
+	fwrite(cabecalho->desC7, 1, 19, binario);
 
 	if (strcmp(tipo, "tipo1") == 0)
-		fwrite(&cabecalho->topoA, sizeof(int), 1, arquivo);
+		fwrite(&cabecalho->proxRRN, sizeof(int), 1, binario);
 	else if (strcmp(tipo, "tipo2") == 0)
-		fwrite(&cabecalho->topoB, sizeof(long int), 1, arquivo);
+		fwrite(&cabecalho->proxByteOffset, sizeof(long int), 1, binario);
 
-	fwrite(cabecalho->descricao, 1, 40, arquivo);
-	fwrite(cabecalho->desC1, 1, 22, arquivo);
-	fwrite(cabecalho->desC2, 1, 19, arquivo);
-	fwrite(cabecalho->desC3, 1, 24, arquivo);
-	fwrite(cabecalho->desC4, 1, 8, arquivo);
-	fwrite(&cabecalho->codC5, 1, 1, arquivo);
-	fwrite(cabecalho->desC5, 1, 16, arquivo);
-	fwrite(&cabecalho->codC6, 1, 1, arquivo);
-	fwrite(cabecalho->desC6, 1, 18, arquivo);
-	fwrite(&cabecalho->codC7, 1, 1, arquivo);
-	fwrite(cabecalho->desC7, 1, 19, arquivo);
-
-	if (strcmp(tipo, "tipo1") == 0)
-		fwrite(&cabecalho->proxRRN, sizeof(int), 1, arquivo);
-	else if (strcmp(tipo, "tipo2") == 0)
-		fwrite(&cabecalho->proxByteOffset, sizeof(long int), 1, arquivo);
-
-	fwrite(&cabecalho->nroRegRem, sizeof(int), 1, arquivo);
+	fwrite(&cabecalho->nroRegRem, sizeof(int), 1, binario);
 }
 
-void atualizarCabecalho(FILE* arquivo, cabecalho_t* cabecalho, char* tipo)
+/**
+ * @brief Atualiza o cabeçalho após alterações feitas na tabela (arquivo binário)
+ *
+ * @param binario : ponteiro para o arquivo
+ * @param cabecalho : ponteiro para a struct que contém os dados do cabeçalho
+ * @param tipo : tipo do arquivo
+ */
+void atualizarCabecalho(FILE* binario, cabecalho_t* cabecalho, char* tipo)
 {
-	fseek(arquivo, 0, 0);
-	fwrite(&cabecalho->status, 1, 1, arquivo);
+	fseek(binario, 0, 0);
+	fwrite(&cabecalho->status, 1, 1, binario);
 
-	if (strcmp(tipo, "tipo1") == 0)
+	if (strcmp(tipo, "tipo1") == TIPOS_IGUAIS)
 	{
-		fseek(arquivo, 174, 0);
-		fwrite(&cabecalho->proxRRN, sizeof(int), 1, arquivo);
+		fseek(binario, 174, 0);
+		fwrite(&cabecalho->proxRRN, sizeof(int), 1, binario);
 	}
-	else if (strcmp(tipo, "tipo2") == 0)
+	else if (strcmp(tipo, "tipo2") == TIPOS_IGUAIS)
 	{
-		fseek(arquivo, 178, 0);
-		fwrite(&cabecalho->proxByteOffset, sizeof(long int), 1, arquivo);
+		fseek(binario, 178, 0);
+		fwrite(&cabecalho->proxByteOffset, sizeof(long int), 1, binario);
 	}
-	fwrite(&cabecalho->nroRegRem, sizeof(int), 1, arquivo);
+	fwrite(&cabecalho->nroRegRem, sizeof(int), 1, binario);
 }
 
-void lerRegistrocsv(FILE* arquivo, registro_t* registro, char* tipo)
+/**
+ * @brief Lê um único registro a partir de um arquivo csv
+ *
+ * @param csv : Arquivo fonte
+ * @param registro : Ponteiro para a strutc na qual serão armazenados
+ * os dados lidos
+ * @param tipo : Tipo do arquivo
+ */
+void lerRegistrocsv(FILE* csv, registro_t* registro, char* tipo)
 {
-	if (strcmp(tipo, "tipo1") == 0)
+	if (strcmp(tipo, "tipo1") == TIPOS_IGUAIS)
 		registro->tamRegistro = ESTATICOS1;
-	else if (strcmp(tipo, "tipo2") == 0)
+	else if (strcmp(tipo, "tipo2") == TIPOS_IGUAIS)
 		registro->tamRegistro = ESTATICOS2;
 
 	registro->sigla[0] = '\0';
 	registro->sigla[1] = '\0';
 
-	registro->id = readNumberUntil(arquivo, ',');
-	registro->ano = readNumberUntil(arquivo, ',');
-	registro->cidade = readUntil(arquivo, ',');
-	registro->qtt = readNumberUntil(arquivo, ',');
-	readStaticUntil(arquivo, 2, registro->sigla, ',');
-	registro->marca = readUntil(arquivo, ',');
-	registro->modelo = readUntil(arquivo, ',');
+	registro->id = readNumberUntil(csv, ',');
+	registro->ano = readNumberUntil(csv, ',');
+	registro->cidade = readUntil(csv, ',');
+	registro->qtt = readNumberUntil(csv, ',');
+	readStaticUntil(csv, 2, registro->sigla, ',');
+	registro->marca = readUntil(csv, ',');
+	registro->modelo = readUntil(csv, ',');
 
 	registro->removido = '0';
 	registro->proxA = -1;
@@ -188,52 +240,76 @@ void lerRegistrocsv(FILE* arquivo, registro_t* registro, char* tipo)
 	registro->tamRegistro += registro->tamCidade + registro->tamMarca + registro->tamModelo;
 }
 
-void escreverLixo(FILE* arquivo, int tam, char* lixo)
+/**
+ * @brief Escreve uma quantidade solicitada de lixo em arquivo binário
+ *
+ * @param binario : Ponteiro para o arquivo
+ * @param tam : Quantidade de lixo a ser escrita
+ * @param lixo : String que indica o lixo
+ */
+void escreverLixo(FILE* binario, int tam, char* lixo)
 {
 	for (int i = 0; i < tam; i++)
 	{
-		fwrite(lixo, 1, 1, arquivo);
+		fwrite(lixo, 1, 1, binario);
 	}
 }
 
-void escreverNoArquivo(FILE* arquivo, registro_t* registro, cabecalho_t* cabecalho, char* tipo)
+/**
+ * @brief Escreve um único registro em um arquivo binário
+ *
+ * @param binario : Ponteiro para o arquivo
+ * @param registro : Ponteiro para a struct que contém os dados
+ * do registro
+ * @param cabecalho : Ponteiro para a struct que contém os dados
+ * do cabeçalho
+ * @param tipo : Tipo do arquivo
+ */
+void escreverNoArquivo(FILE* binario, registro_t* registro, cabecalho_t* cabecalho, char* tipo)
 {
-	fwrite(&registro->removido, 1, 1, arquivo);
-	if (strcmp(tipo, "tipo2") == 0)
-		fwrite(&registro->tamRegistro, sizeof(int), 1, arquivo);
-	if (strcmp(tipo, "tipo1") == 0)
-		fwrite(&registro->proxA, sizeof(int), 1, arquivo);
-	else if (strcmp(tipo, "tipo2") == 0)
-		fwrite(&registro->proxB, sizeof(long int), 1, arquivo);
-	fwrite(&registro->id, sizeof(int), 1, arquivo);
-	fwrite(&registro->ano, sizeof(int), 1, arquivo);
-	fwrite(&registro->qtt, sizeof(int), 1, arquivo);
-	fwrite(registro->sigla, 1, 2, arquivo);
-	
+	fwrite(&registro->removido, 1, 1, binario);
+	if (strcmp(tipo, "tipo2") == TIPOS_IGUAIS)
+		fwrite(&registro->tamRegistro, sizeof(int), 1, binario);
+	if (strcmp(tipo, "tipo1") == TIPOS_IGUAIS)
+		fwrite(&registro->proxA, sizeof(int), 1, binario);
+	else if (strcmp(tipo, "tipo2") == TIPOS_IGUAIS)
+		fwrite(&registro->proxB, sizeof(long int), 1, binario);
+	fwrite(&registro->id, sizeof(int), 1, binario);
+	fwrite(&registro->ano, sizeof(int), 1, binario);
+	fwrite(&registro->qtt, sizeof(int), 1, binario);
+	fwrite(registro->sigla, 1, 2, binario);
+
 	if (registro->cidade != NULL)
 	{
-		fwrite(&registro->tamCidade, sizeof(int), 1, arquivo);
-		fwrite(&cabecalho->codC5, 1, 1, arquivo);
-		fwrite(registro->cidade, 1, registro->tamCidade, arquivo);
+		fwrite(&registro->tamCidade, sizeof(int), 1, binario);
+		fwrite(&cabecalho->codC5, 1, 1, binario);
+		fwrite(registro->cidade, 1, registro->tamCidade, binario);
 	}
-	
+
 	if (registro->marca != NULL)
 	{
-		fwrite(&registro->tamMarca, sizeof(int), 1, arquivo);
-		fwrite(&cabecalho->codC6, 1, 1, arquivo);
-		fwrite(registro->marca, 1, registro->tamMarca, arquivo);
+		fwrite(&registro->tamMarca, sizeof(int), 1, binario);
+		fwrite(&cabecalho->codC6, 1, 1, binario);
+		fwrite(registro->marca, 1, registro->tamMarca, binario);
 	}
-	
+
 	if (registro->modelo != NULL)
 	{
-		fwrite(&registro->tamModelo, sizeof(int), 1, arquivo);
-		fwrite(&cabecalho->codC7, 1, 1, arquivo);
-		fwrite(registro->modelo, 1, registro->tamModelo, arquivo);
+		fwrite(&registro->tamModelo, sizeof(int), 1, binario);
+		fwrite(&cabecalho->codC7, 1, 1, binario);
+		fwrite(registro->modelo, 1, registro->tamModelo, binario);
 	}
-	
-	if (strcmp(tipo, "tipo1") == 0) escreverLixo(arquivo, 97 - registro->tamRegistro	, "$");
+
+	if (strcmp(tipo, "tipo1") == TIPOS_IGUAIS) escreverLixo(binario, 97 - registro->tamRegistro, "$");
 }
 
+/**
+ * @brief Libera a memória alocada para armazenar os dados
+ * de um registro
+ *
+ * @param r : Ponteiro para a struct que contém os dados do 
+ * registro
+ */
 void liberar(registro_t* r)
 {
 	free(r->cidade);
@@ -242,11 +318,16 @@ void liberar(registro_t* r)
 	free(r);
 }
 
+/**
+ * @brief Imprime, de acordo com as especificações, um único registro
+ *
+ * @param r : Ponteiro para a struct com os dados do registro
+ * @param c : Ponteiro para a struct com os dados do cabeçalho
+ */
 void imprimirRegistro(registro_t* r, cabecalho_t* c)
 {
-	if (r->removido == '1')
+	if (r->removido == REGISTRO_REMOVIDO)
 	{
-		printf("Registro inexistente.\n");
 		return;
 	}
 	printf("%s", c->desC6);
