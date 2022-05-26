@@ -4,7 +4,11 @@
 #include <stdio.h>
 #include <string.h>
 
-FILE* createTable()
+/**
+ * @brief Equivalente ao comando SQL, cria uma tabela (arquivo binario) 
+ * de registros, a partir de um arquivo csv dado como entrada
+ */
+void createTable()
 {
     char* tipoArquivo = readUntil(stdin, ' ');
     char* arquivoEntrada = readUntil(stdin, ' ');
@@ -19,13 +23,13 @@ FILE* createTable()
         free(tipoArquivo);
         free(arquivoEntrada);
         free(arquivoSaida);
-        return NULL;
-    }    
+        return;
+    }
 
     cabecalho_t* cabecalho = malloc(sizeof(cabecalho_t));
-    cabecalho->status = '0';
+    cabecalho->status = ARQUIVO_INCONSISTENTE;
     escreverCabecalho(saida, cabecalho, tipoArquivo);
-    if (strcmp(tipoArquivo, "tipo2") == 0)
+    if (strcmp(tipoArquivo, "tipo2") == TIPOS_IGUAIS)
         cabecalho->proxByteOffset = TAM_CABECALHO2;
 
     char buffer;
@@ -43,7 +47,7 @@ FILE* createTable()
     }
     cabecalho->proxRRN = count;
     cabecalho->proxByteOffset = ftell(saida);
-    cabecalho->status = '1';
+    cabecalho->status = ARQUIVO_CONSISTENTE;
     atualizarCabecalho(saida, cabecalho, tipoArquivo);
 
     fclose(entrada);
@@ -55,8 +59,6 @@ FILE* createTable()
     free(tipoArquivo);
     free(arquivoEntrada);
     free(arquivoSaida);
-
-    return saida;
 }
 
 void selectSemWhere() {
@@ -224,19 +226,23 @@ void selectCWhere(){
     liberaStructBusca(busca);
 }
 
+/**
+ * @brief Recupera um registro de tamanho FIXO de um arquivo
+ * binário a partir de seu RRN
+ */
 void recuperarRegistro()
 {
     char* tipoArquivo = readUntil(stdin, ' ');
     char* arquivoEntrada = readUntil(stdin, ' ');
     int RRN = readNumberUntil(stdin, '\n');
 
-    if (strcmp(tipoArquivo, "tipo2") == 0)
+    if (strcmp(tipoArquivo, "tipo2") == TIPOS_IGUAIS)
     {
         printf("A recuperação não pode ser realizada.\n");
         free(tipoArquivo);
         free(arquivoEntrada);
     }
-    else if (strcmp(tipoArquivo, "tipo1") == 0)
+    else if (strcmp(tipoArquivo, "tipo1") == TIPOS_IGUAIS)
     {
         FILE* entrada = fopen(arquivoEntrada, "rb");
         if (entrada == NULL)
@@ -246,8 +252,8 @@ void recuperarRegistro()
             free(arquivoEntrada);
             return;
         }
-        cabecalho_t* cabecalho = lerCabecalhoTipo1(entrada);
-        if (cabecalho->status == 0)
+        cabecalho_t* cabecalho = lerCabecalho(entrada);
+        if (cabecalho->status == ARQUIVO_INCONSISTENTE)
         {
             printf("Falha no processamento do arquivo.\n");
             fclose(entrada);
@@ -256,13 +262,15 @@ void recuperarRegistro()
             free(arquivoEntrada);
             return;
         }
-        if (RRN < 0 || RRN >= cabecalho->proxRRN) 
+        if (RRN < 0 || RRN >= cabecalho->proxRRN)
             printf("Registro inexistente.\n");
         else
         {
             fseek(entrada, (RRN * TAM_REG) + TAM_CABECALHO1, 0);
-            registro_t* reg = lerRegistro(1,entrada);
-            imprimirRegistro(reg, cabecalho);
+            registro_t* reg = lerRegistro(entrada);
+            if(reg->removido == REGISTRO_REMOVIDO) 
+                printf("Registro inexistente.\n");
+            else imprimirRegistro(reg, cabecalho);
             liberar(reg);
         }
         fclose(entrada);
