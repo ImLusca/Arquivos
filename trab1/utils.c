@@ -304,21 +304,6 @@ void escreverNoArquivo(FILE* binario, registro_t* registro, cabecalho_t* cabecal
 }
 
 /**
- * @brief Libera a memória alocada para armazenar os dados
- * de um registro
- *
- * @param r : Ponteiro para a struct que contém os dados do 
- * registro
- */
-void liberar(registro_t* r)
-{
-	free(r->cidade);
-	free(r->marca);
-	free(r->modelo);
-	free(r);
-}
-
-/**
  * @brief Imprime, de acordo com as especificações, um único registro
  *
  * @param r : Ponteiro para a struct com os dados do registro
@@ -510,6 +495,13 @@ void printaRegistro(registro_t *reg){
 	printf("\n");
 }
 
+/**
+ * @brief Libera a memória alocada para armazenar os dados
+ * de um registro
+ *
+ * @param r : Ponteiro para a struct que contém os dados do 
+ * registro
+ */
 void liberaRegistro(registro_t *reg){
 
 	if(campoEstaPreenchido('0',reg)){
