@@ -58,7 +58,7 @@ typedef struct buscaParams{
 	char **filtros;
 } buscaParams_t;
 
-FILE* createTable();
+void createTable();
 void selectSemWhere();
 void selectCWhere();
 void recuperarRegistro();
