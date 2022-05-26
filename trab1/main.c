@@ -1,15 +1,15 @@
 /*******************************************************************************
- |                       USP - Universidade de São Paulo                       |
- |            ICMC - Instituto de Ciências Matemáticas e de Computação         |
+ |                       USP - Universidade de Sï¿½o Paulo                       |
+ |            ICMC - Instituto de Ciï¿½ncias Matemï¿½ticas e de Computaï¿½ï¿½o         |
  *******************************************************************************
- |                    Bacharelado em Ciências de Computação                    |
+ |                    Bacharelado em Ciï¿½ncias de Computaï¿½ï¿½o                    |
  |                                   2022/1                                    |
  |                                                                             |
- |              Autores: Maria Júlia Soares De Grandi (12542501)               |
+ |              Autores: Maria Jï¿½lia Soares De Grandi (12542501)               |
  |                       Lucas Pereira Pacheco (12543930)                      |
  |                            Disciplina: SCC0215                              |
  *******************************************************************************
-  > Primeiro Trabalho Prático
+  > Primeiro Trabalho Prï¿½tico
  ******************************************************************************/
 
 #include <stdio.h>
@@ -27,10 +27,10 @@ int main()
 		createTable();
 		break;
 	case 2:
-		funcionalidade2();
+		selectSemWhere();
 		break;
 	case 3:
-		
+		selectCWhere();
 		break;
 	case 4:
 		recuperarRegistro();

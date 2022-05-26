@@ -59,47 +59,169 @@ FILE* createTable()
     return saida;
 }
 
-void funcionalidade2() {
+void selectSemWhere() {
     char* tipoArquivo = readUntil(stdin, ' ');
     char* arquivoEntrada = readUntil(stdin, ' ');
 
-    FILE* binario = fopen(arquivoEntrada, "rb");
+    FILE* fptr = fopen(arquivoEntrada, "rb");
+    cabecalho_t* cab = NULL;
 
-    if (!strcmp(tipoArquivo, "tipo1")) {
+    int tArquivo;
+    long int final;
 
-        cabecalho_t* cab = lerCabecalhoTipo1(binario);
-        registro_t* reg = lerRegistroTipo1(binario);
-
+    if(!strcmp(tipoArquivo, "tipo1")){
+        tArquivo = 1;
+        cab = lerCabecalhoTipo1(fptr);
+        final = TAM_CABECALHO1 + cab->proxRRN * TAM_REG;
+    }else if(!strcmp(tipoArquivo, "tipo2")){
+        tArquivo == 2;
+        cab = lerCabecalhoTipo2(fptr);
+        final = cab->proxByteOffset;
+    }else{
+        printf("Falha no processamento do arquivo.\n");
+        free(arquivoEntrada);
+        free(tipoArquivo);
+        fclose(fptr);
+        return;
     }
-    else if (!strcmp(tipoArquivo, "tipo2")) {
 
-        cabecalho_t *cab = lerCabecalhoTipo1(binario);
+    if(cab->status == '0'){
+        printf("Falha no processamento do arquivo.\n");
+        free(arquivoEntrada);
+        free(tipoArquivo);
+        fclose(fptr);
+        free(cab);
+        return;
+    }
 
-        do{
-            long int posInicio = ftell(binario);
-            
-            registro_t *reg = lerRegistroTipo1(binario);
+    if((tArquivo == 2 && !cab->proxByteOffset)||
+       (tArquivo == 1 && !cab->proxRRN)){
+        printf("Registro inexistente.\n");
+        free(arquivoEntrada);
+        free(tipoArquivo);
+        fclose(fptr);
+        free(cab);
+        return;
+    }
 
-            printaRegistro(1, reg);
-
-            liberaRegistro(1,reg);
-
-            fseek(binario, posInicio + TAM_REG, SEEK_SET);
-
-        }while(ftell(binario) <= cab->proxRRN * TAM_REG);
+    do{
+        long int posInicio = ftell(fptr);
         
+        registro_t *reg = lerRegistro(tArquivo,fptr);
 
+        if(reg->removido == '0'){
+            printaRegistro(reg);
+        }
+
+        if(tArquivo == 1){
+            fseek(fptr, posInicio + TAM_REG, SEEK_SET);
+        }else{
+            fseek(fptr, posInicio + reg->tamRegistro + 5, SEEK_SET);
+        }
+
+        liberaRegistro(reg);
+    }while(ftell(fptr) < final);
+
+    free(cab);
+    free(arquivoEntrada);
+    free(tipoArquivo);
+    fclose(fptr);
+}
+
+void selectCWhere(){
+    char* tipoArquivo = readUntil(stdin, ' ');
+    char* arquivoEntrada = readUntil(stdin, ' ');
+    int n = readNumberUntil(stdin, '\n');
+    buscaParams_t *busca = malloc(sizeof(buscaParams_t));
+
+    FILE* fptr = fopen(arquivoEntrada, "rb");
+    cabecalho_t* cab = NULL;
+
+    int tArquivo;
+    long int final;
+
+    if(!strcmp(tipoArquivo, "tipo1")){
+        tArquivo = 1;
+        cab = lerCabecalhoTipo1(fptr);
+        final = TAM_CABECALHO1 + cab->proxRRN * TAM_REG;
+    }else if(!strcmp(tipoArquivo, "tipo2")){
+        tArquivo == 2;
+        cab = lerCabecalhoTipo2(fptr);
+        final = cab->proxByteOffset;
+    }else{
+        printf("Falha no processamento do arquivo.\n");
+        free(arquivoEntrada);
+        free(tipoArquivo);
+        fclose(fptr);
+        return;
+    }
+
+    if(cab->status == '0'){
+        printf("Falha no processamento do arquivo.\n");
+        free(arquivoEntrada);
+        free(tipoArquivo);
+        fclose(fptr);
+        free(cab);
+        return;
+    }
+
+    if((tArquivo == 2 && !cab->proxByteOffset)||
+       (tArquivo == 1 && !cab->proxRRN)){
+        printf("Registro inexistente.\n");
+        free(arquivoEntrada);
+        free(tipoArquivo);
+        fclose(fptr);
+        free(cab);
+        return;
+    }
+
+    inicializaStructBusca(busca);
+
+    for(int i =0;i < n; i++){
+        char *nomeCampo = readUntil(stdin, ' ');
+        for(int j =0; j < NUM_PARAMETROS; j++){
+            if(!strcmp(busca->filtros[j],nomeCampo)){
                 
-    }else if(!strcmp(tipoArquivo,"tipo2")){
+                // free(busca->filtros[j]);
+                
+                busca->ehBuscado[j] = 1;
+
+                if(j < 3){
+                    busca->filtros[j] = readUntil(stdin,'\n');
+                }else{
+                    getc(stdin);
+                    busca->filtros[j] = readUntil(stdin,'"');; 
+                    getc(stdin);
+                }
+            }
+        }
+    }
+
+    do{
+        long int posInicio = ftell(fptr);
         
-        cabecalho_t *cab = lerCabecalhoTipo2(binario);
-        registro_t *reg = lerRegistroTipo2(binario);
+        registro_t *reg = lerRegistro(tArquivo,fptr);
 
-    }
-    else {
-        printf("Tipo de arquivo inválido\n");
-    }
+        if(reg->removido == '0'){
+            if(ehValidoFiltro(reg,busca)){
+                printaRegistro(reg);
+            }
+        }
 
+        if(tArquivo == 1){
+            fseek(fptr, posInicio + TAM_REG, SEEK_SET);
+        }else{
+            fseek(fptr, posInicio + reg->tamRegistro + 5, SEEK_SET);
+        }
+
+        liberaRegistro(reg);
+    }while(ftell(fptr) < final);
+
+    free(cab);
+    free(arquivoEntrada);
+    free(tipoArquivo);
+    fclose(fptr);
+    liberaStructBusca(busca);
 }
 
 void recuperarRegistro()
@@ -139,7 +261,7 @@ void recuperarRegistro()
         else
         {
             fseek(entrada, (RRN * TAM_REG) + TAM_CABECALHO1, 0);
-            registro_t* reg = lerRegistroTipo1(entrada);
+            registro_t* reg = lerRegistro(1,entrada);
             imprimirRegistro(reg, cabecalho);
             liberar(reg);
         }

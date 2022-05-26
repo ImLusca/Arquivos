@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "funcionalidades.h"
@@ -302,9 +302,13 @@ cabecalho_t* lerCabecalhoTipo2(FILE* fptr) {
 	cabecalho_t* cab = malloc(sizeof(cabecalho_t));
 	inicializarCabecalho(cab);
 
-	fscanf(fptr, "%c%li", &cab->status, &cab->topoB);
+	fread(&cab->status,1,1,fptr);	
+	fread(&cab->topoB,8,1,fptr);	
+
 	lerDescricoes(fptr, cab);
-	fscanf(fptr, "%li%i", &cab->proxByteOffset, &cab->nroRegRem);
+
+	fread(&cab->proxByteOffset,8,1,fptr);	
+	fread(&cab->nroRegRem,4,1,fptr);	
 
 	return cab;
 
@@ -330,6 +334,8 @@ static void leVariaveis(FILE* fptr, registro_t* reg) {
 
 		fread(&tamanho,4,1,fptr);	
 		fread(&codigo,1,1,fptr);	
+
+		if(feof(fptr)) return;
 
 		if(codigo == '$'){
 			break;
@@ -364,12 +370,17 @@ static void leVariaveis(FILE* fptr, registro_t* reg) {
 }
 
 
-registro_t *lerRegistroTipo1(FILE *fptr){
+registro_t *lerRegistro(int tipo, FILE *fptr){
 	
 	registro_t *reg = malloc(sizeof(registro_t));
 
 	fread(&reg->removido,1,1,fptr);
-	fread(&reg->prox,4,1,fptr);
+	if(tipo == 1){
+		fread(&reg->proxA,4,1,fptr);
+	}else{
+		fread(&reg->tamRegistro,4,1,fptr);
+		fread(&reg->proxB,8,1,fptr);
+	}
 
 	leEstaticos(fptr, reg);
 	
@@ -378,21 +389,7 @@ registro_t *lerRegistroTipo1(FILE *fptr){
 	return reg;
 }
 
-registro_t* lerRegistroTipo2(FILE* fptr) {
-
-	registro_t* reg = malloc(sizeof(registro_t));
-
-	fscanf(fptr, "%c%i%li", &reg->removido, &reg->tamRegistro, &reg->proxB);
-
-	leEstaticos(fptr, reg);
-
-	leVariaveis(fptr, reg);
-
-	return reg;
-
-}
-
-void printaRegistro(int tipoReg, registro_t *reg){
+void printaRegistro(registro_t *reg){
 
 	printf("MARCA DO VEICULO: ");
 	if(campoEstaPreenchido('1',reg)){
@@ -412,7 +409,7 @@ void printaRegistro(int tipoReg, registro_t *reg){
 	if(reg->ano != -1){
 		printf("%i\n", reg->ano);
 	}else{
-		printf("NAO PREENCHIDO\n\n");
+		printf("NAO PREENCHIDO\n");
 	}
 	
 	printf("NOME DA CIDADE: ");
@@ -422,7 +419,7 @@ void printaRegistro(int tipoReg, registro_t *reg){
 		printf("NAO PREENCHIDO\n");
 	}
 
-	printf("QUANTIDADE DE VEICULOS:");
+	printf("QUANTIDADE DE VEICULOS: ");
 	if(reg->qtt != -1){
 		printf("%i\n", reg->qtt);
 	}else{
@@ -432,26 +429,122 @@ void printaRegistro(int tipoReg, registro_t *reg){
 	printf("\n");
 }
 
-void liberaRegistro(int tipoReg, registro_t *reg){
+void liberaRegistro(registro_t *reg){
 
-	if(tipoReg == 1){
-		if(campoEstaPreenchido('0',reg)){
-			free(reg->cidade);
-		}
-		if(campoEstaPreenchido('1',reg)){
-			free(reg->marca);
-		}
-		if(campoEstaPreenchido('2',reg)){
-			free(reg->modelo);
-		}
-
-		free(reg);
+	if(campoEstaPreenchido('0',reg)){
+		free(reg->cidade);
 	}
+	if(campoEstaPreenchido('1',reg)){
+		free(reg->marca);
+	}
+	if(campoEstaPreenchido('2',reg)){
+		free(reg->modelo);
+	}
+
+	free(reg);
+
 }
 
 static int campoEstaPreenchido(char codigo, registro_t *reg){
 	return reg->codC5 == codigo || reg->codC6 == codigo || reg->codC7 == codigo;
 }
+
+
+void inicializaStructBusca(buscaParams_t *busca){
+	busca->filtros = malloc(sizeof(char *) * NUM_PARAMETROS);
+
+	for(int i =0 ; i < NUM_PARAMETROS; i++){
+		busca->ehBuscado[i] = 0;
+		busca->filtros[i] = malloc(sizeof(char)*11);
+	}
+
+	busca->filtros[0] = "id";
+	busca->filtros[1] = "ano";
+	busca->filtros[2] = "quantidade";
+	busca->filtros[3] = "sigla";
+	busca->filtros[4] = "cidade";
+	busca->filtros[5] = "marca";
+	busca->filtros[6] = "modelo";
+}
+
+void liberaStructBusca(buscaParams_t *busca){
+
+	for(int i =0; i < NUM_PARAMETROS; i++){
+		free(busca->filtros[i]);
+	}
+	free(busca->filtros);
+}
+
+static int validaFiltroInt(registro_t *reg, buscaParams_t *busca, int filtro){
+	int val;
+	switch (filtro){
+		case 0: val = reg->id;
+			break;
+		case 1: val = reg->ano;
+			break;
+		case 2: val = reg->qtt;
+	}
+
+	return atoi(busca->filtros[filtro]) == val;
+}
+
+static int strcmpWLen(char* num1, char* num2, int sz1,int sz2){
+	if(sz2 != sz1){
+		return 0;
+	}
+
+	for(int i =0; i < sz1; i++){
+		if(num1[i] != num2[i]){
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int validaFiltroStr(registro_t *reg, buscaParams_t *busca, int filtro){
+	char *val = NULL;
+	int tam = 0;
+
+	if(filtro > 3 && !campoEstaPreenchido(filtro + 44,reg)){
+		return 0;
+	}
+
+	switch(filtro){
+		case 3: val = reg->sigla;
+			break;
+		case 4: val = reg->cidade; 
+				tam = reg->tamCidade;
+			break;
+		case 5: val = reg->marca;
+				tam = reg->tamMarca;
+			break;
+		case 6: val = reg->modelo;
+				tam = reg->tamModelo;
+			break;
+	}
+	char *ref = busca->filtros[filtro];
+	
+	return strcmpWLen(ref,val,tam,strlen(ref));
+}
+
+int ehValidoFiltro(registro_t *reg, buscaParams_t *busca){
+
+	for(int i =0; i < NUM_PARAMETROS; i++){
+		if(busca->ehBuscado[i] && i < 3){
+			if(!validaFiltroInt(reg,busca,i)){
+				return 0;
+			}
+		}else if(busca->ehBuscado[i]){
+			if(!validaFiltroStr(reg,busca,i)){
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+
 void binarioNaTela(char* nomeArquivoBinario) { /* Voc� n�o precisa entender o c�digo dessa fun��o. */
 
 	/* Use essa fun��o para compara��o no run.codes. Lembre-se de ter fechado (fclose) o arquivo anteriormente.

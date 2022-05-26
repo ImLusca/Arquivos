@@ -16,10 +16,12 @@ void atualizarCabecalho(FILE* arquivo, cabecalho_t* cabecalho, char* tipo);
 void binarioNaTela(char* nomeArquivoBinario);
 void liberar(registro_t* r);
 void imprimirRegistro(registro_t* r, cabecalho_t* c);
-void printaRegistro(int tipoReg, registro_t *reg);
-void liberaRegistro(int tipoReg, registro_t *reg);
-registro_t* lerRegistroTipo1(FILE *fptr);
-registro_t* lerRegistroTipo2(FILE *fptr);
+void printaRegistro(registro_t *reg);
+void liberaRegistro(registro_t *reg);
+void liberaStructBusca(buscaParams_t *busca);
+void inicializaStructBusca(buscaParams_t *busca);
+int ehValidoFiltro(registro_t *reg, buscaParams_t *busca);
+registro_t* lerRegistro(int tipo,FILE *fptr);
 cabecalho_t *lerCabecalhoTipo1(FILE *fptr);
 cabecalho_t *lerCabecalhoTipo2(FILE *fptr);
 

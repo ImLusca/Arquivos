@@ -6,6 +6,7 @@
 #define TAM_CABECALHO2 190
 #define TAM_REG 97
 #define CABECALHO_CSV 61
+#define NUM_PARAMETROS 7
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -52,10 +53,14 @@ typedef struct registro
 	char codC7;
 } registro_t;
 
+typedef struct buscaParams{
+	int ehBuscado[7];
+	char **filtros;
+} buscaParams_t;
 
 FILE* createTable();
-void funcionalidade2();
-void funcionalidade3();
+void selectSemWhere();
+void selectCWhere();
 void recuperarRegistro();
 
 
