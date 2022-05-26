@@ -20,7 +20,6 @@ void liberaStructBusca(buscaParams_t *busca);
 void inicializaStructBusca(buscaParams_t *busca);
 int ehValidoFiltro(registro_t *reg, buscaParams_t *busca);
 registro_t* lerRegistro(int tipo,FILE *fptr);
-cabecalho_t *lerCabecalhoTipo1(FILE *fptr);
-cabecalho_t *lerCabecalhoTipo2(FILE *fptr);
+cabecalho_t *lerCabecalho(int tipo,FILE *fptr);
 
 #endif

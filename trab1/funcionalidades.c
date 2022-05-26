@@ -43,7 +43,7 @@ void createTable()
         escreverNoArquivo(saida, registro, cabecalho, tipoArquivo);
         count++;
 
-        liberar(registro);
+        liberaRegistro(registro);
     }
     cabecalho->proxRRN = count;
     cabecalho->proxByteOffset = ftell(saida);
@@ -73,11 +73,11 @@ void selectSemWhere() {
 
     if(!strcmp(tipoArquivo, "tipo1")){
         tArquivo = 1;
-        cab = lerCabecalhoTipo1(fptr);
+        cab = lerCabecalho(1,fptr);
         final = TAM_CABECALHO1 + cab->proxRRN * TAM_REG;
     }else if(!strcmp(tipoArquivo, "tipo2")){
         tArquivo == 2;
-        cab = lerCabecalhoTipo2(fptr);
+        cab = lerCabecalho(2,fptr);
         final = cab->proxByteOffset;
     }else{
         printf("Falha no processamento do arquivo.\n");
@@ -112,7 +112,7 @@ void selectSemWhere() {
         registro_t *reg = lerRegistro(tArquivo,fptr);
 
         if(reg->removido == '0'){
-            printaRegistro(reg);
+            imprimirRegistro(reg,cab);
         }
 
         if(tArquivo == 1){
@@ -144,11 +144,11 @@ void selectCWhere(){
 
     if(!strcmp(tipoArquivo, "tipo1")){
         tArquivo = 1;
-        cab = lerCabecalhoTipo1(fptr);
+        cab = lerCabecalho(1,fptr);
         final = TAM_CABECALHO1 + cab->proxRRN * TAM_REG;
     }else if(!strcmp(tipoArquivo, "tipo2")){
         tArquivo == 2;
-        cab = lerCabecalhoTipo2(fptr);
+        cab = lerCabecalho(2,fptr);
         final = cab->proxByteOffset;
     }else{
         printf("Falha no processamento do arquivo.\n");
@@ -206,7 +206,7 @@ void selectCWhere(){
 
         if(reg->removido == '0'){
             if(ehValidoFiltro(reg,busca)){
-                printaRegistro(reg);
+                imprimirRegistro(reg,cab);
             }
         }
 
@@ -252,7 +252,7 @@ void recuperarRegistro()
             free(arquivoEntrada);
             return;
         }
-        cabecalho_t* cabecalho = lerCabecalho(entrada);
+        cabecalho_t* cabecalho = lerCabecalho(1,entrada);
         if (cabecalho->status == ARQUIVO_INCONSISTENTE)
         {
             printf("Falha no processamento do arquivo.\n");
@@ -267,11 +267,11 @@ void recuperarRegistro()
         else
         {
             fseek(entrada, (RRN * TAM_REG) + TAM_CABECALHO1, 0);
-            registro_t* reg = lerRegistro(entrada);
+            registro_t* reg = lerRegistro(1,entrada);
             if(reg->removido == REGISTRO_REMOVIDO) 
                 printf("Registro inexistente.\n");
             else imprimirRegistro(reg, cabecalho);
-            liberar(reg);
+            liberaRegistro(reg);
         }
         fclose(entrada);
         free(cabecalho);

@@ -309,29 +309,29 @@ void escreverNoArquivo(FILE* binario, registro_t* registro, cabecalho_t* cabecal
  * @param r : Ponteiro para a struct com os dados do registro
  * @param c : Ponteiro para a struct com os dados do cabeçalho
  */
-void imprimirRegistro(registro_t* r, cabecalho_t* c)
-{
-	if (r->removido == REGISTRO_REMOVIDO)
-	{
-		return;
-	}
-	printf("%s", c->desC6);
-	if (r->marca != NULL)printf("%s\n", r->marca);
-	else printf("NAO PREENCHIDO\n");
-	printf("%s", c->desC7);
-	if (r->modelo != NULL)printf("%s\n", r->modelo);
-	else printf("NAO PREENCHIDO\n");
-	printf("%s", c->desC5);
-	if (r->ano != -1)printf("%d\n", r->ano);
-	else printf("NAO PREENCHIDO\n");
-	printf("%s", c->desC2);
-	if (r->cidade != NULL)printf("%s\n", r->cidade);
-	else printf("NAO PREENCHIDO\n");
-	printf("%s", c->desC3);
-	if (r->qtt != -1)printf("%d\n", r->qtt);
-	else printf("NAO PREENCHIDO\n");
-	printf("\n");
-}
+// void imprimirRegistro(registro_t* r, cabecalho_t* c)
+// {
+// 	if (r->removido == REGISTRO_REMOVIDO)
+// 	{
+// 		return;
+// 	}
+// 	printf("%s", c->desC6);
+// 	if (r->marca != NULL)printf("%s\n", r->marca);
+// 	else printf("NAO PREENCHIDO\n");
+// 	printf("%s", c->desC7);
+// 	if (r->modelo != NULL)printf("%s\n", r->modelo);
+// 	else printf("NAO PREENCHIDO\n");
+// 	printf("%s", c->desC5);
+// 	if (r->ano != -1)printf("%d\n", r->ano);
+// 	else printf("NAO PREENCHIDO\n");
+// 	printf("%s", c->desC2);
+// 	if (r->cidade != NULL)printf("%s\n", r->cidade);
+// 	else printf("NAO PREENCHIDO\n");
+// 	printf("%s", c->desC3);
+// 	if (r->qtt != -1)printf("%d\n", r->qtt);
+// 	else printf("NAO PREENCHIDO\n");
+// 	printf("\n");
+// }
 
 static void lerDescricoes(FILE* fptr, cabecalho_t* cab) {
 
@@ -349,31 +349,26 @@ static void lerDescricoes(FILE* fptr, cabecalho_t* cab) {
 
 }
 
-cabecalho_t* lerCabecalhoTipo1(FILE* fptr) {
+cabecalho_t* lerCabecalho(int tipo, FILE* fptr) {
 
 	cabecalho_t* cab = malloc(sizeof(cabecalho_t));
 	inicializarCabecalho(cab);
-
-	fscanf(fptr, "%c%li", &cab->status, &cab->topoB);
-	fseek(fptr,4,SEEK_CUR);
-	lerDescricoes(fptr, cab);
-	fread(&cab->proxRRN,4,1,fptr);	
-	fread(&cab->nroRegRem,4,1,fptr);	
-
-	return cab;
-
-}
-cabecalho_t* lerCabecalhoTipo2(FILE* fptr) {
-
-	cabecalho_t* cab = malloc(sizeof(cabecalho_t));
-	inicializarCabecalho(cab);
-
 	fread(&cab->status,1,1,fptr);	
-	fread(&cab->topoB,8,1,fptr);	
+
+	if(tipo == 1){
+		fread(&cab->topoA,4,1,fptr);
+	}else if(tipo == 2){
+		fread(&cab->topoB,8,1,fptr);
+	}
 
 	lerDescricoes(fptr, cab);
 
-	fread(&cab->proxByteOffset,8,1,fptr);	
+	if(tipo == 1){
+		fread(&cab->proxRRN,4,1,fptr);	
+	}else{
+		fread(&cab->proxByteOffset,8,1,fptr);	
+	}
+
 	fread(&cab->nroRegRem,4,1,fptr);	
 
 	return cab;
@@ -455,37 +450,37 @@ registro_t *lerRegistro(int tipo, FILE *fptr){
 	return reg;
 }
 
-void printaRegistro(registro_t *reg){
+void imprimirRegistro(registro_t *reg,cabecalho_t *cab){
 
-	printf("MARCA DO VEICULO: ");
+	printf("%s", cab->desC6);
 	if(campoEstaPreenchido('1',reg)){
 		printf("%.*s\n", reg->tamMarca, reg->marca);
 	}else{
 		printf("NAO PREENCHIDO\n");
 	}
 
-	printf("MODELO DO VEICULO: ");
+	printf("%s", cab->desC7);
 	if(campoEstaPreenchido('2',reg)){
 		printf("%.*s\n", reg->tamModelo, reg->modelo);
 	}else{
 		printf("NAO PREENCHIDO\n");
 	}
 
-	printf("ANO DE FABRICACAO: ");
+	printf("%s", cab->desC2);
 	if(reg->ano != -1){
 		printf("%i\n", reg->ano);
 	}else{
 		printf("NAO PREENCHIDO\n");
 	}
 	
-	printf("NOME DA CIDADE: ");
+	printf("%s", cab->desC5);
 	if(campoEstaPreenchido('0',reg)){
 		printf("%.*s\n", reg->tamCidade, reg->cidade);
 	}else{
 		printf("NAO PREENCHIDO\n");
 	}
 
-	printf("QUANTIDADE DE VEICULOS: ");
+	printf("%s", cab->desC3);
 	if(reg->qtt != -1){
 		printf("%i\n", reg->qtt);
 	}else{
@@ -542,10 +537,7 @@ void inicializaStructBusca(buscaParams_t *busca){
 
 void liberaStructBusca(buscaParams_t *busca){
 
-	for(int i =0; i < NUM_PARAMETROS; i++){
-		free(busca->filtros[i]);
-	}
-	free(busca->filtros);
+
 }
 
 static int validaFiltroInt(registro_t *reg, buscaParams_t *busca, int filtro){
