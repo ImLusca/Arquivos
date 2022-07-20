@@ -1,0 +1,5 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/lusca/nerdola/aulas/Arquivos/trab3'
+gcc main.c utils.c funcionalidades.c fileUtils.c indexUtils.c -g -o main
+make: Leaving directory '/home/lusca/nerdola/aulas/Arquivos/trab3'
+ 
